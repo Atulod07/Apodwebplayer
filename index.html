@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <title>Video with Long Press 2x Speed</title>
+  <style>
+    body {
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    video {
+      max-width: 100%;
+      border: 2px solid #fff;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<video id="myVideo" controls>
+  <source src="https://pixeldrain.com/api/file/WXNGUcLE" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+<script>
+  const video = document.getElementById('myVideo');
+  let timer;
+
+  video.addEventListener('touchstart', () => {
+    timer = setTimeout(() => {
+      video.playbackRate = 2.0;
+    }, 600); // 600ms long press
+  });
+
+  video.addEventListener('touchend', () => {
+    clearTimeout(timer);
+    video.playbackRate = 1.0;
+  });
+</script>
+
+</body>
+</html>
