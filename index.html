@@ -1,64 +1,123 @@
-<!DOCTYPE html>
-<html>
+<!DOCTYPE html><html lang="en">
 <head>
-  <title>2X Video Player</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Apod Video Player</title>
   <style>
-    body {
-      margin: 0;
-      background-color: black;
-      overflow: hidden;
-    }
-    #container {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-    }
-    video {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      z-index: 1;
-    }
-    #touchLayer {
+    body { margin: 0; background: #000; overflow: hidden; }
+    video { width: 100vw; height: 100vh; object-fit: contain; background: #000; }
+    #speedControl {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 2;
-      background: transparent;
+      top: 20px;
+      right: 20px;
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      padding: 10px;
+      border-radius: 10px;
+    }
+    #fullscreenBtn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      padding: 10px;
+      border-radius: 10px;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <div id="container">
-    <video id="video" controls autoplay>
-      <source src="your-video.mp4" type="video/mp4">
-      Your browser does not support the video tag.
-    </video>
-    <div id="touchLayer"></div>
-  </div>
+  <video id="video" controls crossorigin="anonymous">
+    <source src="https://pixeldrain.com/api/file/WXNGUcLE" type="video/mp4" />
+    Your browser does not support HTML5 video.
+  </video>  <div id="fullscreenBtn">[ Fullscreen ]</div>
+  <div id="speedControl">
+    Speed:
+    <select id="speedSelector">
+      <option value="1">1x</option>
+      <option value="1.1">1.1x</option>
+      <option value="1.2">1.2x</option>
+      <option value="1.5">1.5x</option>
+      <option value="2">2x</option>
+    </select>
+  </div>  <script>
+    const video = document.getElementById('video');
 
-  <script>
-    const video = document.getElementById("video");
-    const touchLayer = document.getElementById("touchLayer");
+    // Fullscreen Toggle
+    document.getElementById('fullscreenBtn').addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        video.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    });
 
-    let longPressTimer;
+    // Speed Selector
+    document.getElementById('speedSelector').addEventListener('change', (e) => {
+      video.playbackRate = parseFloat(e.target.value);
+    });
 
-    touchLayer.addEventListener("touchstart", function () {
-      longPressTimer = setTimeout(() => {
-        video.playbackRate = (video.playbackRate === 1) ? 2 : 1;
+    // Middle Double Tap Play/Pause
+    let lastTap = 0;
+    video.addEventListener('touchstart', (e) => {
+      const currentTime = new Date().getTime();
+      const tapLength = currentTime - lastTap;
+      if (tapLength < 300 && tapLength > 0) {
+        if (e.touches[0].clientX > window.innerWidth / 3 && e.touches[0].clientX < (2 * window.innerWidth) / 3) {
+          if (video.paused) video.play();
+          else video.pause();
+        }
+      }
+      lastTap = currentTime;
+    });
+
+    // Swipe Controls
+    let initialX = null;
+    let initialY = null;
+    video.addEventListener('touchstart', function (e) {
+      const touch = e.touches[0];
+      initialX = touch.clientX;
+      initialY = touch.clientY;
+    });
+
+    video.addEventListener('touchmove', function (e) {
+      if (!initialX || !initialY) return;
+
+      let currentX = e.touches[0].clientX;
+      let currentY = e.touches[0].clientY;
+
+      let diffX = currentX - initialX;
+      let diffY = currentY - initialY;
+
+      if (Math.abs(diffX) > Math.abs(diffY)) {
+        // Seek
+        if (diffX > 0) video.currentTime += 2;
+        else video.currentTime -= 2;
+      } else {
+        if (initialX < window.innerWidth / 2) {
+          // Brightness control placeholder (not supported in browsers)
+          console.log('Brightness swipe');
+        } else {
+          // Volume
+          video.volume = Math.min(Math.max(video.volume + (diffY < 0 ? 0.05 : -0.05), 0), 1);
+        }
+      }
+
+      initialX = null;
+      initialY = null;
+    });
+
+    // Long press = 2x speed
+    let pressTimer;
+    video.addEventListener('touchstart', function(e) {
+      pressTimer = setTimeout(() => {
+        video.playbackRate = 2;
       }, 500);
     });
 
-    touchLayer.addEventListener("touchend", function () {
-      clearTimeout(longPressTimer);
+    video.addEventListener('touchend', function(e) {
+      clearTimeout(pressTimer);
     });
-
-    // Prevent long-press menu
-    video.addEventListener("contextmenu", function (e) {
-      e.preventDefault();
-    });
-  </script>
-</body>
+  </script></body>
 </html>
