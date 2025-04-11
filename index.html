@@ -5,119 +5,109 @@
   <title>Apod Video Player</title>
   <style>
     body { margin: 0; background: #000; overflow: hidden; }
-    video { width: 100vw; height: 100vh; object-fit: contain; background: #000; }
-    #speedControl {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      background: rgba(0,0,0,0.6);
-      color: #fff;
-      padding: 10px;
-      border-radius: 10px;
+    #video-container { position: relative; width: 100vw; height: 100vh; }
+    video { width: 100%; height: 100%; object-fit: contain; background: #000; }
+    #controls {
+      position: absolute; bottom: 10px; left: 10px;
+      background: rgba(0, 0, 0, 0.5); padding: 10px;
+      border-radius: 10px; color: white;
     }
-    #fullscreenBtn {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      background: rgba(0,0,0,0.6);
-      color: #fff;
-      padding: 10px;
-      border-radius: 10px;
-      cursor: pointer;
-    }
+    #controls select, #controls button { margin-right: 10px; }
   </style>
 </head>
 <body>
-  <video id="video" controls crossorigin="anonymous">
-    <source src="https://pixeldrain.com/api/file/WXNGUcLE" type="video/mp4" />
-    Your browser does not support HTML5 video.
-  </video>  <div id="fullscreenBtn">[ Fullscreen ]</div>
-  <div id="speedControl">
-    Speed:
-    <select id="speedSelector">
-      <option value="1">1x</option>
-      <option value="1.1">1.1x</option>
-      <option value="1.2">1.2x</option>
-      <option value="1.5">1.5x</option>
-      <option value="2">2x</option>
-    </select>
-  </div>  <script>
+  <div id="video-container">
+    <video id="video" controls autoplay playsinline muted>
+      <source src="https://pixeldrain.com/api/file/WXNGUcLE" type="video/mp4" />
+      Your browser does not support the video tag.
+    </video>
+    <div id="controls">
+      <label>Speed:
+        <select id="speedControl">
+          <option value="1">1x</option>
+          <option value="1.1">1.1x</option>
+          <option value="1.2">1.2x</option>
+          <option value="1.5">1.5x</option>
+          <option value="2">2x</option>
+        </select>
+      </label>
+      <button id="fullscreenBtn">Fullscreen</button>
+    </div>
+  </div>
+  <script>
     const video = document.getElementById('video');
+    const speedControl = document.getElementById('speedControl');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');// Speed control
+speedControl.addEventListener('change', () => {
+  video.playbackRate = parseFloat(speedControl.value);
+});
 
-    // Fullscreen Toggle
-    document.getElementById('fullscreenBtn').addEventListener('click', () => {
-      if (!document.fullscreenElement) {
-        video.requestFullscreen();
-      } else {
-        document.exitFullscreen();
-      }
-    });
+// Fullscreen
+fullscreenBtn.addEventListener('click', () => {
+  if (video.requestFullscreen) {
+    video.requestFullscreen();
+  } else if (video.webkitRequestFullscreen) {
+    video.webkitRequestFullscreen();
+  } else if (video.msRequestFullscreen) {
+    video.msRequestFullscreen();
+  }
+});
 
-    // Speed Selector
-    document.getElementById('speedSelector').addEventListener('change', (e) => {
-      video.playbackRate = parseFloat(e.target.value);
-    });
+// Middle double tap = Play/Pause
+let lastTap = 0;
+video.addEventListener('touchend', function (e) {
+  const currentTime = new Date().getTime();
+  const tapLength = currentTime - lastTap;
+  if (tapLength < 300 && tapLength > 0) {
+    if (video.paused) video.play();
+    else video.pause();
+  }
+  lastTap = currentTime;
+});
 
-    // Middle Double Tap Play/Pause
-    let lastTap = 0;
-    video.addEventListener('touchstart', (e) => {
-      const currentTime = new Date().getTime();
-      const tapLength = currentTime - lastTap;
-      if (tapLength < 300 && tapLength > 0) {
-        if (e.touches[0].clientX > window.innerWidth / 3 && e.touches[0].clientX < (2 * window.innerWidth) / 3) {
-          if (video.paused) video.play();
-          else video.pause();
-        }
-      }
-      lastTap = currentTime;
-    });
+// Long press = 2x speed
+let pressTimer;
+video.addEventListener('touchstart', function (e) {
+  pressTimer = window.setTimeout(() => {
+    video.playbackRate = 2;
+  }, 700);
+});
+video.addEventListener('touchend', function (e) {
+  clearTimeout(pressTimer);
+});
 
-    // Swipe Controls
-    let initialX = null;
-    let initialY = null;
-    video.addEventListener('touchstart', function (e) {
-      const touch = e.touches[0];
-      initialX = touch.clientX;
-      initialY = touch.clientY;
-    });
+// Swipe gestures
+let startX, startY;
+video.addEventListener('touchstart', (e) => {
+  startX = e.touches[0].clientX;
+  startY = e.touches[0].clientY;
+});
 
-    video.addEventListener('touchmove', function (e) {
-      if (!initialX || !initialY) return;
+video.addEventListener('touchmove', (e) => {
+  if (!startX || !startY) return;
 
-      let currentX = e.touches[0].clientX;
-      let currentY = e.touches[0].clientY;
+  let diffX = e.touches[0].clientX - startX;
+  let diffY = e.touches[0].clientY - startY;
 
-      let diffX = currentX - initialX;
-      let diffY = currentY - initialY;
+  if (Math.abs(diffX) > Math.abs(diffY)) {
+    // Horizontal swipe = Seek
+    if (diffX > 0) video.currentTime += 5;
+    else video.currentTime -= 5;
+  } else {
+    if (startX > window.innerWidth / 2) {
+      // Right swipe = Volume
+      if (diffY < 0) video.volume = Math.min(1, video.volume + 0.05);
+      else video.volume = Math.max(0, video.volume - 0.05);
+    } else {
+      // Left swipe = Brightness (simulated with opacity)
+      const newOpacity = Math.max(0.3, Math.min(1, 1 - diffY / 300));
+      video.style.filter = `brightness(${newOpacity})`;
+    }
+  }
+  startX = null;
+  startY = null;
+});
 
-      if (Math.abs(diffX) > Math.abs(diffY)) {
-        // Seek
-        if (diffX > 0) video.currentTime += 2;
-        else video.currentTime -= 2;
-      } else {
-        if (initialX < window.innerWidth / 2) {
-          // Brightness control placeholder (not supported in browsers)
-          console.log('Brightness swipe');
-        } else {
-          // Volume
-          video.volume = Math.min(Math.max(video.volume + (diffY < 0 ? 0.05 : -0.05), 0), 1);
-        }
-      }
-
-      initialX = null;
-      initialY = null;
-    });
-
-    // Long press = 2x speed
-    let pressTimer;
-    video.addEventListener('touchstart', function(e) {
-      pressTimer = setTimeout(() => {
-        video.playbackRate = 2;
-      }, 500);
-    });
-
-    video.addEventListener('touchend', function(e) {
-      clearTimeout(pressTimer);
-    });
-  </script></body>
+  </script>
+</body>
 </html>
