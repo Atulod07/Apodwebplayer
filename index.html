@@ -1,177 +1,87 @@
 <!DOCTYPE html><html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Apod Video Player</title>
   <style>
     body {
-      background-color: #000;
-      color: #fff;
-      font-family: sans-serif;
       margin: 0;
-      padding: 0;
-    }
-    h1, h2 {
+      padding: 10px;
+      font-family: sans-serif;
+      background: black;
+      color: white;
       text-align: center;
-      color: #fff;
     }
-    .video-container {
-      position: relative;
-      width: 100%;
-      max-width: 800px;
-      margin: 20px auto;
+    h1 {
+      margin-top: 10px;
     }
     video {
       width: 100%;
+      max-height: 300px;
       border-radius: 10px;
+      background: #000;
+    }
+    .video-container {
+      margin-bottom: 30px;
+      position: relative;
     }
     .fullscreen-btn {
       position: absolute;
-      bottom: -25px;
-      right: 0;
-      background: green;
-      color: white;
-      padding: 5px 10px;
-      border-radius: 5px;
-      font-size: 12px;
-      cursor: pointer;
-    }
-    #adminBtn {
-      position: fixed;
-      top: 10px;
+      bottom: 10px;
       right: 10px;
-      font-size: 12px;
-      padding: 5px 10px;
-      background: #222;
-      color: #fff;
+      background: rgba(255, 255, 255, 0.2);
       border: none;
+      color: white;
+      padding: 5px 10px;
       border-radius: 5px;
       cursor: pointer;
-      z-index: 9999;
-    }
-    #popup {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #111;
-      padding: 20px;
-      color: white;
-      border-radius: 10px;
-      z-index: 10000;
-    }
-    #popup input {
-      margin-top: 10px;
-      width: 100%;
-      padding: 5px;
     }
   </style>
 </head>
 <body>
   <h1>Apod Video Player</h1>
-  <h2>❤️ Design By ATUL OD ♥️</h2><button id="adminBtn">Admin</button>
-
-  <div id="popup">
-    <p>This section is only for website Admin</p>
-    <input type="password" id="adminPassword" placeholder="Please Enter The Password" />
-    <button onclick="verifyPassword()">Submit</button>
-    <div id="linkSection" style="display:none;">
-      <input type="text" id="videoLink" placeholder="Paste Pixeldrain MP4 Direct Link" />
-      <button onclick="addVideo()">Add Video</button>
-    </div>
-  </div>  <div id="videos">
-    <div class="video-container">
-      <h2>9 April – Episode 60</h2>
-      <video controls preload="metadata" oncontextmenu="return false">
-        <source src="https://pixeldrain.com/api/file/fErsBKKj?download" type="video/mp4">
-        Your browser does not support the video tag.
-      </video>
-      <div class="fullscreen-btn" onclick="fullscreen(this)">Fullscreen</div>
-    </div><div class="video-container">
-  <h2>10 April – Episode 61</h2>
-  <video controls preload="metadata" oncontextmenu="return false">
-    <source src="https://pixeldrain.com/api/file/YuaMaJHP?download" type="video/mp4">
-    Your browser does not support the video tag.
-  </video>
-  <div class="fullscreen-btn" onclick="fullscreen(this)">Fullscreen</div>
-</div>
-
-<div class="video-container">
-  <h2>11 April – Episode 62</h2>
-  <video controls preload="metadata" oncontextmenu="return false">
-    <source src="https://pixeldrain.com/api/file/tHUZxHEU?download" type="video/mp4">
-    Your browser does not support the video tag.
-  </video>
-  <div class="fullscreen-btn" onclick="fullscreen(this)">Fullscreen</div>
-</div>
-
+  <p>❤️ Design By ATUL OD ♥️</p>  <div class="video-container">
+    <h2>9 April ! Episode 60</h2>
+    <video id="video1" src="https://pixeldrain.com/api/file/fErsBKKj" controls preload="auto"></video>
+    <button class="fullscreen-btn" onclick="toggleFullscreen('video1')">Fullscreen</button>
+  </div>  <div class="video-container">
+    <h2>10 April ! Episode 61</h2>
+    <video id="video2" src="https://pixeldrain.com/api/file/YuaMaJHP" controls preload="auto"></video>
+    <button class="fullscreen-btn" onclick="toggleFullscreen('video2')">Fullscreen</button>
+  </div>  <div class="video-container">
+    <h2>11 April ! Episode 62</h2>
+    <video id="video3" src="https://pixeldrain.com/api/file/tHUZxHEU" controls preload="auto"></video>
+    <button class="fullscreen-btn" onclick="toggleFullscreen('video3')">Fullscreen</button>
   </div>  <script>
-    document.querySelectorAll("video").forEach((vid) => {
-      let holding = false;
-      let speedTimeout;
-
-      vid.addEventListener("mousedown", () => {
-        holding = true;
-        vid.playbackRate = 2.0;
-      });
-      vid.addEventListener("mouseup", () => {
-        holding = false;
-        vid.playbackRate = 1.0;
-      });
-
-      vid.addEventListener("touchstart", () => {
-        vid.playbackRate = 2.0;
-      });
-      vid.addEventListener("touchend", () => {
-        vid.playbackRate = 1.0;
-      });
-
-      let lastTap = 0;
-      vid.addEventListener("touchend", (e) => {
-        const currentTime = new Date().getTime();
-        const tapLength = currentTime - lastTap;
-        if (tapLength < 300 && tapLength > 0) {
-          vid.currentTime += 5;
-        }
-        lastTap = currentTime;
-      });
-    });
-
-    function fullscreen(btn) {
-      const video = btn.previousElementSibling;
-      if (video.requestFullscreen) video.requestFullscreen();
-      else if (video.webkitRequestFullscreen) video.webkitRequestFullscreen();
-      else if (video.msRequestFullscreen) video.msRequestFullscreen();
-    }
-
-    const popup = document.getElementById("popup");
-    document.getElementById("adminBtn").onclick = () => {
-      popup.style.display = "block";
-    };
-
-    function verifyPassword() {
-      const pass = document.getElementById("adminPassword").value;
-      if (pass === "1234567890Aa@702") {
-        document.getElementById("linkSection").style.display = "block";
-      } else {
-        alert("Incorrect password!");
+    function toggleFullscreen(id) {
+      const vid = document.getElementById(id);
+      if (vid.requestFullscreen) {
+        vid.requestFullscreen();
+      } else if (vid.webkitRequestFullscreen) {
+        vid.webkitRequestFullscreen();
+      } else if (vid.msRequestFullscreen) {
+        vid.msRequestFullscreen();
       }
     }
 
-    function addVideo() {
-      const link = document.getElementById("videoLink").value;
-      const container = document.createElement("div");
-      container.className = "video-container";
-      container.innerHTML = `
-        <h2>New Episode</h2>
-        <video controls preload="metadata" oncontextmenu="return false">
-          <source src="${link}" type="video/mp4">
-        </video>
-        <div class="fullscreen-btn" onclick="fullscreen(this)">Fullscreen</div>
-      `;
-      document.getElementById("videos").appendChild(container);
-      popup.style.display = "none";
-    }
+    document.querySelectorAll('video').forEach(video => {
+      let originalSpeed = 1;
+      let timeout;
+
+      video.addEventListener('touchstart', e => {
+        timeout = setTimeout(() => {
+          video.playbackRate = 2;
+        }, 500);
+      });
+
+      video.addEventListener('touchend', e => {
+        clearTimeout(timeout);
+        video.playbackRate = originalSpeed;
+      });
+
+      video.addEventListener('dblclick', () => {
+        toggleFullscreen(video.id);
+      });
+    });
   </script></body>
 </html>
