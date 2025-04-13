@@ -1,102 +1,177 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Hold to Speed + Fullscreen + Volume</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Apod Video Player</title>
   <style>
     body {
+      background-color: #000;
+      color: #fff;
+      font-family: sans-serif;
       margin: 0;
-      background: #000;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      overflow: hidden;
-      flex-direction: column;
+      padding: 0;
     }
-    #container {
+    h1, h2 {
+      text-align: center;
+      color: #fff;
+    }
+    .video-container {
       position: relative;
       width: 100%;
-      max-width: 720px;
+      max-width: 800px;
+      margin: 20px auto;
     }
     video {
       width: 100%;
-      background: black;
+      border-radius: 10px;
     }
-    #controls {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .fullscreen-btn {
+      position: absolute;
+      bottom: -25px;
+      right: 0;
+      background: green;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    #adminBtn {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      font-size: 12px;
+      padding: 5px 10px;
+      background: #222;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      z-index: 9999;
+    }
+    #popup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #111;
+      padding: 20px;
+      color: white;
+      border-radius: 10px;
+      z-index: 10000;
+    }
+    #popup input {
       margin-top: 10px;
       width: 100%;
-      color: white;
-    }
-    #volumeSlider {
-      width: 100px;
-    }
-    #fullscreenBtn {
-      padding: 6px 12px;
-      background: #444;
-      border: none;
-      color: white;
-      cursor: pointer;
-      border-radius: 5px;
+      padding: 5px;
     }
   </style>
 </head>
 <body>
-  <div id="container">
-    <video id="video" controls autoplay>
-      <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4" />
-      Your browser does not support the video tag.
-    </video>
-    <div id="controls">
-      <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1">
-      <button id="fullscreenBtn">Fullscreen</button>
+  <h1>Apod Video Player</h1>
+  <h2>❤️ Design By ATUL OD ♥️</h2><button id="adminBtn">Admin</button>
+
+  <div id="popup">
+    <p>This section is only for website Admin</p>
+    <input type="password" id="adminPassword" placeholder="Please Enter The Password" />
+    <button onclick="verifyPassword()">Submit</button>
+    <div id="linkSection" style="display:none;">
+      <input type="text" id="videoLink" placeholder="Paste Pixeldrain MP4 Direct Link" />
+      <button onclick="addVideo()">Add Video</button>
     </div>
-  </div>
+  </div>  <div id="videos">
+    <div class="video-container">
+      <h2>9 April – Episode 60</h2>
+      <video controls preload="metadata" oncontextmenu="return false">
+        <source src="https://pixeldrain.com/api/file/fErsBKKj?download" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+      <div class="fullscreen-btn" onclick="fullscreen(this)">Fullscreen</div>
+    </div><div class="video-container">
+  <h2>10 April – Episode 61</h2>
+  <video controls preload="metadata" oncontextmenu="return false">
+    <source src="https://pixeldrain.com/api/file/YuaMaJHP?download" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+  <div class="fullscreen-btn" onclick="fullscreen(this)">Fullscreen</div>
+</div>
 
-  <script>
-    const video = document.getElementById('video');
-    const volumeSlider = document.getElementById('volumeSlider');
-    const fullscreenBtn = document.getElementById('fullscreenBtn');
+<div class="video-container">
+  <h2>11 April – Episode 62</h2>
+  <video controls preload="metadata" oncontextmenu="return false">
+    <source src="https://pixeldrain.com/api/file/tHUZxHEU?download" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+  <div class="fullscreen-btn" onclick="fullscreen(this)">Fullscreen</div>
+</div>
 
-    // Press and hold = 2x
-    let longPressTimer;
+  </div>  <script>
+    document.querySelectorAll("video").forEach((vid) => {
+      let holding = false;
+      let speedTimeout;
 
-    const startHold = () => {
-      longPressTimer = setTimeout(() => {
-        video.playbackRate = 2;
-      }, 500);
-    };
+      vid.addEventListener("mousedown", () => {
+        holding = true;
+        vid.playbackRate = 2.0;
+      });
+      vid.addEventListener("mouseup", () => {
+        holding = false;
+        vid.playbackRate = 1.0;
+      });
 
-    const stopHold = () => {
-      clearTimeout(longPressTimer);
-      video.playbackRate = 1;
-    };
+      vid.addEventListener("touchstart", () => {
+        vid.playbackRate = 2.0;
+      });
+      vid.addEventListener("touchend", () => {
+        vid.playbackRate = 1.0;
+      });
 
-    video.addEventListener('mousedown', startHold);
-    video.addEventListener('mouseup', stopHold);
-    video.addEventListener('mouseleave', stopHold);
-
-    video.addEventListener('touchstart', startHold);
-    video.addEventListener('touchend', stopHold);
-
-    // Volume control
-    volumeSlider.addEventListener('input', () => {
-      video.volume = volumeSlider.value;
+      let lastTap = 0;
+      vid.addEventListener("touchend", (e) => {
+        const currentTime = new Date().getTime();
+        const tapLength = currentTime - lastTap;
+        if (tapLength < 300 && tapLength > 0) {
+          vid.currentTime += 5;
+        }
+        lastTap = currentTime;
+      });
     });
 
-    // Fullscreen button
-    fullscreenBtn.addEventListener('click', () => {
-      if (video.requestFullscreen) {
-        video.requestFullscreen();
-      } else if (video.webkitRequestFullscreen) {
-        video.webkitRequestFullscreen();
-      } else if (video.msRequestFullscreen) {
-        video.msRequestFullscreen();
+    function fullscreen(btn) {
+      const video = btn.previousElementSibling;
+      if (video.requestFullscreen) video.requestFullscreen();
+      else if (video.webkitRequestFullscreen) video.webkitRequestFullscreen();
+      else if (video.msRequestFullscreen) video.msRequestFullscreen();
+    }
+
+    const popup = document.getElementById("popup");
+    document.getElementById("adminBtn").onclick = () => {
+      popup.style.display = "block";
+    };
+
+    function verifyPassword() {
+      const pass = document.getElementById("adminPassword").value;
+      if (pass === "1234567890Aa@702") {
+        document.getElementById("linkSection").style.display = "block";
+      } else {
+        alert("Incorrect password!");
       }
-    });
-  </script>
-</body>
+    }
+
+    function addVideo() {
+      const link = document.getElementById("videoLink").value;
+      const container = document.createElement("div");
+      container.className = "video-container";
+      container.innerHTML = `
+        <h2>New Episode</h2>
+        <video controls preload="metadata" oncontextmenu="return false">
+          <source src="${link}" type="video/mp4">
+        </video>
+        <div class="fullscreen-btn" onclick="fullscreen(this)">Fullscreen</div>
+      `;
+      document.getElementById("videos").appendChild(container);
+      popup.style.display = "none";
+    }
+  </script></body>
 </html>
