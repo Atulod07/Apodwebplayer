@@ -96,7 +96,8 @@
       background: transparent;
       color: red;
       border: none;
-      font-size: 20px;
+      font-size: 16px;
+      font-weight: bold;
       cursor: pointer;
     }
   </style>
@@ -146,6 +147,14 @@
       return url.includes("pixeldrain.com") || url.endsWith(".mp4");
     }
 
+    function normalizeUrl(url) {
+      if (url.includes("pixeldrain.com/u/")) {
+        const id = url.split("/u/")[1];
+        return `https://pixeldrain.com/api/file/${id}`;
+      }
+      return url;
+    }
+
     function saveVideos() {
       localStorage.setItem("apodVideos", JSON.stringify(videos));
     }
@@ -180,8 +189,9 @@
 
     function addVideo() {
       const title = document.getElementById("videoTitle").value.trim();
-      const url = document.getElementById("videoUrl").value.trim();
+      let url = document.getElementById("videoUrl").value.trim();
       if (title && isValidUrl(url)) {
+        url = normalizeUrl(url);
         videos.push({ title, url });
         saveVideos();
         renderVideos();
@@ -192,8 +202,9 @@
 
     function replaceVideo() {
       const index = parseInt(document.getElementById("replaceIndex").value) - 1;
-      const url = document.getElementById("replaceUrl").value.trim();
+      let url = document.getElementById("replaceUrl").value.trim();
       if (videos[index] && isValidUrl(url)) {
+        url = normalizeUrl(url);
         videos[index].url = url;
         saveVideos();
         renderVideos();
