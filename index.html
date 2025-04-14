@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -93,18 +92,22 @@
     <span class="admin-toggle" onclick="openAdmin()">Admin</span>
   </header>
   <div class="branding">❤️ Design By ATUL OD ♥️</div>
-  <div id="videoList"></div>
-
-  <div id="adminPanel">
+  <div id="videoList"></div>  <div id="adminPanel">
     <span class="close-btn" onclick="closeAdmin()">&times;</span>
     <div id="adminContent"></div>
-  </div>
-
-  <script>
+  </div>  <script>
     const password = "1234567890Aa@702";
 
     function getVideos() {
-      return JSON.parse(localStorage.getItem("videos") || "[]");
+      const data = localStorage.getItem("videos");
+      if (data) return JSON.parse(data);
+      const defaultVideos = [
+        { title: "Motivational Story 1", url: "https://pixeldrain.link/video1.mp4" },
+        { title: "Motivational Story 2", url: "https://pixeldrain.link/video2.mp4" },
+        { title: "Motivational Story 3", url: "https://pixeldrain.link/video3.mp4" }
+      ];
+      localStorage.setItem("videos", JSON.stringify(defaultVideos));
+      return defaultVideos;
     }
 
     function saveVideos(videos) {
@@ -159,7 +162,7 @@
       div.innerHTML = videos.map((v, i) => `
         <div style="margin-top:10px;">
           <strong>${v.title}</strong><br/>
-          <input type="text" id="replaceUrl${i}" placeholder="New URL to Replace" />
+          <input type="text" id="replaceUrl${i}" placeholder="New MP4 URL to Replace" />
           <button onclick="replaceVideo(${i})">Replace</button>
           <button onclick="deleteVideo(${i})" style="color:red;">Delete</button>
         </div>
@@ -209,6 +212,5 @@
     }
 
     renderVideos();
-  </script>
-</body>
+  </script></body>
 </html>
