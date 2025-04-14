@@ -1,30 +1,34 @@
 <!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Apod Video Player</title>
   <style>
     body {
       margin: 0;
       background-color: #000;
       color: #fff;
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
     header {
       background-color: #111;
       padding: 16px;
       font-size: 24px;
       font-weight: bold;
+      width: 100%;
       text-align: center;
       border-bottom: 2px solid green;
     }
     .branding {
-      text-align: center;
       margin: 10px;
       font-size: 16px;
       color: #0f0;
     }
     .video-container {
+      width: 100%;
       max-width: 480px;
       margin: 20px auto;
       position: relative;
@@ -49,165 +53,153 @@
       text-align: center;
       margin-top: 5px;
     }
-    .admin-toggle {
-      position: absolute;
-      right: 10px;
+    #adminToggle {
+      position: fixed;
       top: 10px;
-      background: green;
-      color: white;
-      padding: 5px 10px;
-      border-radius: 5px;
+      right: 10px;
+      background: #333;
+      color: #0f0;
+      padding: 10px 15px;
+      border: none;
       cursor: pointer;
+      z-index: 999;
     }
     #adminPanel {
       display: none;
       position: fixed;
-      top: 10%;
-      left: 50%;
-      transform: translateX(-50%);
+      top: 50px;
+      right: 20px;
       background: #111;
-      border: 2px solid green;
       padding: 20px;
-      z-index: 1000;
-      max-width: 90%;
+      border: 2px solid #0f0;
+      border-radius: 10px;
+      z-index: 999;
     }
-    #adminPanel input {
-      width: 90%;
-      margin: 5px 0;
+    #adminPanel input, #adminPanel button {
+      display: block;
+      margin: 10px 0;
+      width: 100%;
       padding: 8px;
+      background: #222;
+      color: #0f0;
+      border: 1px solid #0f0;
+      border-radius: 5px;
     }
-    .close-btn {
+    #closeAdmin {
       position: absolute;
       top: 5px;
       right: 10px;
+      background: transparent;
       color: red;
+      border: none;
       font-size: 20px;
       cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <header>
-    Apod Video Player
-    <span class="admin-toggle" onclick="openAdmin()">Admin</span>
-  </header>
+  <header>Apod Video Player</header>
   <div class="branding">❤️ Design By ATUL OD ♥️</div>
-  <div id="videoList"></div>  <div id="adminPanel">
-    <span class="close-btn" onclick="closeAdmin()">&times;</span>
-    <div id="adminContent"></div>
-  </div>  <script>
+  <button id="adminToggle">Admin</button>
+  <div id="adminPanel">
+    <button id="closeAdmin">&times;</button>
+    <input type="text" id="videoTitle" placeholder="Episode Title">
+    <input type="text" id="videoUrl" placeholder="MP4 Video URL">
+    <button onclick="addVideo()">Add Video</button>
+    <input type="number" id="replaceIndex" placeholder="Replace at Index (1,2,...)" min="1">
+    <input type="text" id="replaceUrl" placeholder="New MP4 URL">
+    <button onclick="replaceVideo()">Replace Video</button>
+    <input type="number" id="deleteIndex" placeholder="Delete at Index (1,2,...)" min="1">
+    <button onclick="deleteVideo()">Delete Video</button>
+  </div>
+  <div id="videoList"></div>  <script>
     const password = "1234567890Aa@702";
+    const adminToggle = document.getElementById("adminToggle");
+    const adminPanel = document.getElementById("adminPanel");
+    const closeAdmin = document.getElementById("closeAdmin");
 
-    function getVideos() {
-      const data = localStorage.getItem("videos");
-      if (data) return JSON.parse(data);
-      const defaultVideos = [
-        { title: "Motivational Story 1", url: "https://pixeldrain.link/video1.mp4" },
-        { title: "Motivational Story 2", url: "https://pixeldrain.link/video2.mp4" },
-        { title: "Motivational Story 3", url: "https://pixeldrain.link/video3.mp4" }
-      ];
-      localStorage.setItem("videos", JSON.stringify(defaultVideos));
-      return defaultVideos;
-    }
+    adminToggle.onclick = () => {
+      const input = prompt("Enter Admin Password:");
+      if (input === password) {
+        adminPanel.style.display = "block";
+      } else {
+        alert("Wrong password");
+      }
+    };
+    closeAdmin.onclick = () => {
+      adminPanel.style.display = "none";
+    };
 
-    function saveVideos(videos) {
-      localStorage.setItem("videos", JSON.stringify(videos));
+    let videos = JSON.parse(localStorage.getItem("apodVideos")) || [
+      { title: "9 April ! Episode 60", url: "https://pixeldrain.com/api/file/fErsBKKj" },
+      { title: "10 April ! Episode 61", url: "https://pixeldrain.com/api/file/YuaMaJHP" },
+      { title: "11 April ! Episode 62", url: "https://pixeldrain.com/api/file/tHUZxHEU" }
+    ];
+
+    function saveVideos() {
+      localStorage.setItem("apodVideos", JSON.stringify(videos));
     }
 
     function renderVideos() {
-      const container = document.getElementById("videoList");
-      container.innerHTML = "";
-      const videos = getVideos();
+      const list = document.getElementById("videoList");
+      list.innerHTML = "";
       videos.forEach((v, i) => {
-        container.innerHTML += `
-          <div class="video-container">
-            <video id="vid${i}" controls playsinline>
-              <source src="${v.url}" type="video/mp4">
-              Your browser does not support the video tag.
-            </video>
-            <div class="title">${v.title}</div>
-            <button class="fullscreen-btn" onclick="toggleFullscreen('vid${i}')">Fullscreen</button>
-          </div>
-        `;
+        const container = document.createElement("div");
+        container.className = "video-container";
+
+        const video = document.createElement("video");
+        video.controls = true;
+        video.playsInline = true;
+        video.src = v.url;
+
+        const title = document.createElement("div");
+        title.className = "title";
+        title.textContent = v.title;
+
+        const btn = document.createElement("button");
+        btn.className = "fullscreen-btn";
+        btn.textContent = "Fullscreen";
+        btn.onclick = () => video.requestFullscreen();
+
+        container.appendChild(video);
+        container.appendChild(title);
+        container.appendChild(btn);
+        list.appendChild(container);
       });
     }
 
-    function openAdmin() {
-      const input = prompt("Enter Admin Password:");
-      if (input === password) {
-        const adminPanel = document.getElementById("adminPanel");
-        const adminContent = document.getElementById("adminContent");
-        adminContent.innerHTML = `
-          <h3 style="text-align:center;">Manage Videos</h3>
-          <input type="text" id="newTitle" placeholder="Video Title" />
-          <input type="text" id="newUrl" placeholder="MP4 Video URL" />
-          <button onclick="addVideo()">Add Video</button>
-          <hr style="margin:10px 0;">
-          <div id="videoManager"></div>
-        `;
-        showVideoManager();
-        adminPanel.style.display = "block";
-      } else {
-        alert("Incorrect password!");
-      }
-    }
-
-    function closeAdmin() {
-      document.getElementById("adminPanel").style.display = "none";
-    }
-
-    function showVideoManager() {
-      const videos = getVideos();
-      const div = document.getElementById("videoManager");
-      div.innerHTML = videos.map((v, i) => `
-        <div style="margin-top:10px;">
-          <strong>${v.title}</strong><br/>
-          <input type="text" id="replaceUrl${i}" placeholder="New MP4 URL to Replace" />
-          <button onclick="replaceVideo(${i})">Replace</button>
-          <button onclick="deleteVideo(${i})" style="color:red;">Delete</button>
-        </div>
-      `).join('');
-    }
-
     function addVideo() {
-      const title = document.getElementById("newTitle").value.trim();
-      const url = document.getElementById("newUrl").value.trim();
-      if (title && url) {
-        const videos = getVideos();
+      const title = document.getElementById("videoTitle").value;
+      const url = document.getElementById("videoUrl").value;
+      if (title && url.endsWith(".mp4")) {
         videos.push({ title, url });
-        saveVideos(videos);
+        saveVideos();
         renderVideos();
-        showVideoManager();
-        document.getElementById("newTitle").value = "";
-        document.getElementById("newUrl").value = "";
+      } else {
+        alert("Invalid input or not an MP4");
       }
     }
 
-    function deleteVideo(index) {
-      const videos = getVideos();
-      videos.splice(index, 1);
-      saveVideos(videos);
-      renderVideos();
-      showVideoManager();
-    }
-
-    function replaceVideo(index) {
-      const url = document.getElementById("replaceUrl" + index).value.trim();
-      if (url) {
-        const videos = getVideos();
+    function replaceVideo() {
+      const index = parseInt(document.getElementById("replaceIndex").value) - 1;
+      const url = document.getElementById("replaceUrl").value;
+      if (videos[index] && url.endsWith(".mp4")) {
         videos[index].url = url;
-        saveVideos(videos);
+        saveVideos();
         renderVideos();
-        showVideoManager();
+      } else {
+        alert("Invalid index or URL");
       }
     }
 
-    function toggleFullscreen(id) {
-      const video = document.getElementById(id);
-      if (video.requestFullscreen) {
-        video.requestFullscreen();
-      } else if (video.webkitRequestFullscreen) {
-        video.webkitRequestFullscreen();
+    function deleteVideo() {
+      const index = parseInt(document.getElementById("deleteIndex").value) - 1;
+      if (videos[index]) {
+        videos.splice(index, 1);
+        saveVideos();
+        renderVideos();
+      } else {
+        alert("Invalid index");
       }
     }
 
