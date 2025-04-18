@@ -1,232 +1,111 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Apod Video Player</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HTML Generator - Apod Tool</title>
   <style>
     body {
-      margin: 0;
       background-color: #000;
       color: #fff;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    header {
-      background-color: #111;
-      padding: 16px;
-      font-size: 24px;
-      font-weight: bold;
-      width: 100%;
+      font-family: sans-serif;
+      padding: 20px;
       text-align: center;
-      border-bottom: 2px solid green;
     }
-    .branding {
+    h1 {
+      color: #00ffcc;
+      margin-bottom: 30px;
+    }
+    input, button {
+      padding: 10px;
       margin: 10px;
-      font-size: 16px;
-      color: #0f0;
-    }
-    .video-container {
-      width: 100%;
-      max-width: 480px;
-      margin: 60px auto;
-      position: relative;
-    }
-    video {
-      width: 100%;
-      border-radius: 10px;
-      outline: none;
-    }
-   .fullscreen-btn {
-      position:absolute;
-      bottom:-25px;
-      right:2px;
-      background: green;
-      color: white;
-      padding: 5px 10px;
+      border-radius: 5px;
       border: none;
-      border-radius: 100px;
-      cursor: pointer;
-  }
-    .title {
-      text-align: center;
-      margin-top: 5px;
+      width: 90%;
+      max-width: 400px;
     }
-    #adminToggle {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      background: #333;
-      color: #0f0;
-      padding: 10px 15px;
-      border: none;
-      cursor: pointer;
-      z-index: 999;
-    }
-    #adminPanel {
-      display: none;
-      position: fixed;
-      top: 60px;
-      right: 10px;
+    #result {
       background: #111;
       padding: 20px;
-      border: 2px solid #0f0;
       border-radius: 10px;
-      z-index: 999;
-      width: 300px;
-      max-width: 90%;
+      margin-top: 30px;
+      white-space: pre-wrap;
+      text-align: left;
     }
-    #adminPanel input,
-    #adminPanel button {
-      margin: 8px 0;
-      width: 100%;
-      padding: 8px;
-      background: #222;
-      color: #0f0;
-      border: 1px solid #0f0;
-      border-radius: 5px;
-      box-sizing: border-box;
-    }
-    #closeAdmin {
-      position: top;
-      top: 5px;
-      right: 10px;
-      background: transparent;
-      color: red;
-      border: none;
-      font-size: 16px;
+    .copy-btn {
+      background-color: #14e04b;
+      color: #000;
       font-weight: bold;
       cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <header>Apod Video Player</header>
-  <div class="branding">❤️ Design By ATUL OD ♥️</div>
-  <button id="adminToggle">Admin</button>
-  <div id="adminPanel">
-    <button id="closeAdmin">&times;</button>
-    <input type="text" id="videoTitle" placeholder="Episode Title">
-    <input type="text" id="videoUrl" placeholder="MP4 or Pixeldrain URL">
-    <button onclick="addVideo()">Add Video</button>
-    <input type="number" id="replaceIndex" placeholder="Replace at Index (1,2,...)" min="1">
-    <input type="text" id="replaceUrl" placeholder="New MP4 or Pixeldrain URL">
-    <button onclick="replaceVideo()">Replace Video</button>
-    <input type="number" id="deleteIndex" placeholder="Delete at Index (1,2,...)" min="1">
-    <button onclick="deleteVideo()">Delete Video</button>
-  </div>
-  <div id="videoList"></div>
+  <h1>HTML Code Generator - ATULOD</h1>
+  <input type="text" id="fileName" placeholder="Enter file name with extension (e.g. video.mp4, song.mp3, image.jpg)">
+  <button onclick="generateHTML()">Generate HTML</button>
+  <div id="result"></div>
+  <button class="copy-btn" onclick="copyCode()">Copy Code</button>
 
   <script>
-    const password = "1234567890Aa@702";
-    const adminToggle = document.getElementById("adminToggle");
-    const adminPanel = document.getElementById("adminPanel");
-    const closeAdmin = document.getElementById("closeAdmin");
+    function generateHTML() {
+      const name = document.getElementById("fileName").value.trim();
+      if (!name) {
+        alert("Please enter a valid file name");
+        return;
+      }
 
-    adminToggle.onclick = () => {
-      const input = prompt("Enter Admin Password:");
-      if (input === password) {
-        adminPanel.style.display = "block";
+      const fileType = name.split('.').pop().toLowerCase();
+      let mediaHTML = '';
+
+      if (['mp4', 'webm', 'ogg'].includes(fileType)) {
+        mediaHTML = `<video controls preload="metadata" style="max-width:100%;border:2px solid #14e04b;border-radius:10px;">
+  <source src="${name}" type="video/${fileType}">
+  आपका ब्राउज़र इस वीडियो को नहीं चला सकता।
+</video>`;
+      } else if (['mp3', 'wav', 'ogg'].includes(fileType)) {
+        mediaHTML = `<audio controls preload="metadata" style="width:100%;max-width:500px;">
+  <source src="${name}" type="audio/${fileType}">
+  आपका ब्राउज़र इस ऑडियो को नहीं चला सकता।
+</audio>`;
+      } else if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(fileType)) {
+        mediaHTML = `<img src="${name}" alt="Image file" style="max-width:100%;border:2px solid #14e04b;border-radius:10px;">`;
       } else {
-        alert("Wrong password");
+        mediaHTML = `<p><strong>File:</strong> <a href="${name}" download style="color:#14e04b;">Download ${name}</a></p>`;
       }
-    };
-    closeAdmin.onclick = () => {
-      adminPanel.style.display = "none";
-    };
 
-    let videos = JSON.parse(localStorage.getItem("apodVideos")) || 
-      { title: "11 ApriL ! Episode 62", url: "https://pixeldrain.com/api/file/tHUZxHEU" },
-      { title: "14 ApriL ! Episode 63", url: "https://pixeldrain.com/api/file/2ZRSFbF8" },
-      { title: "15 ApriL ! Episode 64", url: "https://pixeldrain.com/api/file/caRKYB71" },
-      { title: "16 ApriL ! Episode 65", url: "https://pixeldrain.com/api/file/jadYbC1a" },
-    ];
+      const htmlCode = `<div class="file-block">
+  ${mediaHTML}
+  <br>
+  <a class="download-btn" href="${name}" download style="display:inline-block;margin-top:20px;padding:12px 30px;background:#14e04b;color:#000;border-radius:50px;font-weight:bold;text-decoration:none;">Download ${name}</a>
+</div>`;
 
-    
-    function isValidUrl(url) {
-      return url.includes("pixeldrain.com") || url.endsWith(".mp4");
+      document.getElementById("result").textContent = htmlCode;
     }
 
-    function normalizeUrl(url) {
-      if (url.includes("pixeldrain.com/u/")) {
-        const id = url.split("/u/")[1];
-        return `https://pixeldrain.com/api/file/${id}`;
-      }
-      return url;
-    }
+    function copyCode() {
+      const code = document.getElementById("result").textContent;
 
-    function saveVideos() {
-      localStorage.setItem("apodVideos", JSON.stringify(videos));
-    }
-
-    function renderVideos() {
-      const list = document.getElementById("videoList");
-      list.innerHTML = "";
-      videos.forEach((v, i) => {
-        const container = document.createElement("div");
-        container.className = "video-container";
-
-        const video = document.createElement("video");
-        video.controls = true;
-        video.playsInline = true;
-        video.src = v.url;
-
-        const title = document.createElement("div");
-        title.className = "title";
-        title.textContent = v.title;
-
-        const btn = document.createElement("button");
-        btn.className = "fullscreen-btn";
-        btn.textContent = "Fullscreen";
-        btn.onclick = () => video.requestFullscreen();
-
-        container.appendChild(video);
-        container.appendChild(title);
-        container.appendChild(btn);
-        list.appendChild(container);
-      });
-    }
-
-    function addVideo() {
-      const title = document.getElementById("videoTitle").value.trim();
-      let url = document.getElementById("videoUrl").value.trim();
-      if (title && isValidUrl(url)) {
-        url = normalizeUrl(url);
-        videos.push({ title, url });
-        saveVideos();
-        renderVideos();
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(code)
+          .then(() => alert("Code copied to clipboard!"))
+          .catch(err => alert("Failed to copy: " + err));
       } else {
-        alert("Invalid title or URL");
+        const textarea = document.createElement("textarea");
+        textarea.value = code;
+        textarea.style.position = "fixed"; 
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        try {
+          document.execCommand('copy');
+          alert("Code copied to clipboard!");
+        } catch (err) {
+          alert("Fallback copy failed: " + err);
+        }
+        document.body.removeChild(textarea);
       }
     }
-
-    function replaceVideo() {
-      const index = parseInt(document.getElementById("replaceIndex").value) - 1;
-      let url = document.getElementById("replaceUrl").value.trim();
-      if (videos[index] && isValidUrl(url)) {
-        url = normalizeUrl(url);
-        videos[index].url = url;
-        saveVideos();
-        renderVideos();
-      } else {
-        alert("Invalid index or URL");
-      }
-    }
-
-    function deleteVideo() {
-      const index = parseInt(document.getElementById("deleteIndex").value) - 1;
-      if (videos[index]) {
-        videos.splice(index, 1);
-        saveVideos();
-        renderVideos();
-      } else {
-        alert("Invalid index");
-      }
-    }
-
-    renderVideos();
   </script>
 </body>
 </html>
