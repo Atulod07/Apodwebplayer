@@ -1,111 +1,79 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="gu">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HTML Generator - Apod Tool</title>
-  <style>
-    body {
-      background-color: #000;
-      color: #fff;
-      font-family: sans-serif;
-      padding: 20px;
-      text-align: center;
-    }
-    h1 {
-      color: #00ffcc;
-      margin-bottom: 30px;
-    }
-    input, button {
-      padding: 10px;
-      margin: 10px;
-      border-radius: 5px;
-      border: none;
-      width: 90%;
-      max-width: 400px;
-    }
-    #result {
-      background: #111;
-      padding: 20px;
-      border-radius: 10px;
-      margin-top: 30px;
-      white-space: pre-wrap;
-      text-align: left;
-    }
-    .copy-btn {
-      background-color: #14e04b;
-      color: #000;
-      font-weight: bold;
-      cursor: pointer;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>UGVCL Lightbill Scanner</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        video, canvas { width: 90%; margin: 10px auto; display: block; }
+        #result { font-size: 48px; font-weight: bold; margin-top: 20px; color: green; }
+        button { margin: 10px; padding: 10px; font-size: 18px; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.0.3/tesseract.min.js"></script>
 </head>
 <body>
-  <h1>HTML Code Generator - ATULOD</h1>
-  <input type="text" id="fileName" placeholder="Enter file name with extension (e.g. video.mp4, song.mp3, image.jpg)">
-  <button onclick="generateHTML()">Generate HTML</button>
-  <div id="result"></div>
-  <button class="copy-btn" onclick="copyCode()">Copy Code</button>
+    <h2>UGVCL લાઇટબિલ સ્કેનર</h2>
+    <video id="camera" autoplay playsinline></video>
+    <button onclick="capture()">તસવીર લો</button>
+    <canvas id="canvas"></canvas>
+    <p id="result">ગ્રાહક નંબર સ્કેન કરો</p>
 
-  <script>
-    function generateHTML() {
-      const name = document.getElementById("fileName").value.trim();
-      if (!name) {
-        alert("Please enter a valid file name");
-        return;
-      }
+    <script>
+        const data = {
+            '72245/10917/1': 'studio',
+            '72245/10916/3': 'શિવમ એમિટેશન',
+            '72245/10841/8': 'Library (લાઇબ્રેરી)',
+            '72245/10801/9': 'ચામુંડા ઝેરોક્ષ',
+            '72245/10815/9': 'કુળદેવી ઝેરોક્ષ',
+            '72245/10842/6': 'વેલકમ મોબાઈલ',
+            '72245/10840/0': 'પવન ઇલેક્ટ્રોનિક',
+            '72245/10843/4': 'ઑટોગ્રાફ',
+            '72245/10800/0': 'નક્ષત્ર જવેલર્સ',
+            '72245/10551/6': 'સાનવી'
+        };
 
-      const fileType = name.split('.').pop().toLowerCase();
-      let mediaHTML = '';
+        const video = document.getElementById("camera");
+        const canvas = document.getElementById("canvas");
+        const context = canvas.getContext("2d");
+        const resultElement = document.getElementById("result");
 
-      if (['mp4', 'webm', 'ogg'].includes(fileType)) {
-        mediaHTML = `<video controls preload="metadata" style="max-width:100%;border:2px solid #14e04b;border-radius:10px;">
-  <source src="${name}" type="video/${fileType}">
-  आपका ब्राउज़र इस वीडियो को नहीं चला सकता।
-</video>`;
-      } else if (['mp3', 'wav', 'ogg'].includes(fileType)) {
-        mediaHTML = `<audio controls preload="metadata" style="width:100%;max-width:500px;">
-  <source src="${name}" type="audio/${fileType}">
-  आपका ब्राउज़र इस ऑडियो को नहीं चला सकता।
-</audio>`;
-      } else if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(fileType)) {
-        mediaHTML = `<img src="${name}" alt="Image file" style="max-width:100%;border:2px solid #14e04b;border-radius:10px;">`;
-      } else {
-        mediaHTML = `<p><strong>File:</strong> <a href="${name}" download style="color:#14e04b;">Download ${name}</a></p>`;
-      }
-
-      const htmlCode = `<div class="file-block">
-  ${mediaHTML}
-  <br>
-  <a class="download-btn" href="${name}" download style="display:inline-block;margin-top:20px;padding:12px 30px;background:#14e04b;color:#000;border-radius:50px;font-weight:bold;text-decoration:none;">Download ${name}</a>
-</div>`;
-
-      document.getElementById("result").textContent = htmlCode;
-    }
-
-    function copyCode() {
-      const code = document.getElementById("result").textContent;
-
-      if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(code)
-          .then(() => alert("Code copied to clipboard!"))
-          .catch(err => alert("Failed to copy: " + err));
-      } else {
-        const textarea = document.createElement("textarea");
-        textarea.value = code;
-        textarea.style.position = "fixed"; 
-        document.body.appendChild(textarea);
-        textarea.focus();
-        textarea.select();
-        try {
-          document.execCommand('copy');
-          alert("Code copied to clipboard!");
-        } catch (err) {
-          alert("Fallback copy failed: " + err);
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                video.srcObject = stream;
+                video.play();
+            } catch (err) {
+                alert("કેમેરા પરમિશન અપડેટ કરો: " + err.message);
+            }
         }
-        document.body.removeChild(textarea);
-      }
-    }
-  </script>
+
+        function capture() {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            scanImage();
+        }
+
+        async function scanImage() {
+            resultElement.textContent = "સ્કેન કરી રહ્યું છે...";
+            try {
+                const { data: { text } } = await Tesseract.recognize(canvas, 'eng+guj', {
+                    tessedit_char_whitelist: '0123456789/',
+                    psm: 6
+                });
+                const cleanedText = text.replace(/\s/g, '');
+                const customerNumber = Object.keys(data).find(key => cleanedText.includes(key));
+                if (customerNumber) {
+                    resultElement.textContent = `દુકાન: ${data[customerNumber]}`;
+                } else {
+                    resultElement.textContent = "ગ્રાહક નંબર મળ્યો નથી";
+                }
+            } catch (err) {
+                resultElement.textContent = "સ્કેન દરમ્યાન સમસ્યા: " + err.message;
+            }
+        }
+
+        startCamera();
+    </script>
 </body>
 </html>
